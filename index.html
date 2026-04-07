@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="icon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.4/babel.min.js"></script>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body, #root { height: 100%; }
@@ -26,10 +26,10 @@
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel">
+<script type="text/babel" data-presets="react">
 const { useState, useRef, useEffect } = React;
 
-const PIN_CODE = “1234”;
+const PIN_CODE = “1002”;
 const GS_URL = “https://script.google.com/macros/s/AKfycbwJa9sFeyITw0cYhozI2eN5RRZyILs-dzLNUEt5vx-fqyjPDe2i4bBcTGCxKdKNN3AC/exec”;
 
 const WINE_COLORS = { rouge:“🔴”, blanc:“⚪”, rosé:“🌸”, champagne:“🥂”, autre:“🍾” };
@@ -417,7 +417,7 @@ color:”#fff”,cursor:“pointer”,fontSize:11,fontWeight:“bold”}}>
       <div style={{background:"rgba(255,255,255,0.92)",border:"1px solid #c0a870",
         borderRadius:10,padding:"12px 14px",marginTop:12,boxShadow:"0 2px 12px rgba(0,0,0,0.12)"}}>
         <div style={{fontSize:10,color:"#9a8060",marginBottom:5}}>
-          📍 {sec?.label} · Rangée {Number(parts[1])+1} · Col. {Number(parts[2])+1}
+          📍 {(sec&&sec.label?sec.label:"")} · Rangée {Number(parts[1])+1} · Col. {Number(parts[2])+1}
         </div>
         {selectedWine ? (
           <>
@@ -571,7 +571,7 @@ const renderSettings = () => (
       style={{width:"100%",padding:"9px 11px",borderRadius:8,background:"#1a0a00",
         border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none",marginBottom:8}}/>
     <button onClick={()=>{
-      const key=document.querySelector('input[placeholder="sk-ant-..."]')?.value||"";
+      const _el=document.querySelector('input[placeholder="sk-ant-..."]'); const key=_el?_el.value:"";
       lsSet("cave_apikey",key);
       showToast(key?"✅ Clé sauvegardée":"🗑️ Clé supprimée");
     }} style={{width:"100%",padding:"9px",borderRadius:8,background:"#3a1500",
