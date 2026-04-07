@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -28,37 +29,37 @@
 <script type="text/babel">
 const { useState, useRef, useEffect } = React;
 
-const PIN_CODE = "1002";
-const GS_URL = "https://script.google.com/macros/s/AKfycbwJa9sFeyITw0cYhozI2eN5RRZyILs-dzLNUEt5vx-fqyjPDe2i4bBcTGCxKdKNN3AC/exec";
+const PIN_CODE = “1234”;
+const GS_URL = “https://script.google.com/macros/s/AKfycbwJa9sFeyITw0cYhozI2eN5RRZyILs-dzLNUEt5vx-fqyjPDe2i4bBcTGCxKdKNN3AC/exec”;
 
-const WINE_COLORS = { rouge:"🔴", blanc:"⚪", rosé:"🌸", champagne:"🥂", autre:"🍾" };
+const WINE_COLORS = { rouge:“🔴”, blanc:“⚪”, rosé:“🌸”, champagne:“🥂”, autre:“🍾” };
 
 // Shape detection from appellation
 function detectShape(appellation, nom) {
-  const a = (appellation||"").toLowerCase();
-  const n = (nom||"").toLowerCase();
-  if (a.includes("alsace") || a.includes("riesling") || n.includes("riesling")) return "als";
-  if (a.includes("bordeaux") || a.includes("pauillac") || a.includes("saint-julien") ||
-      a.includes("pomerol") || a.includes("margaux") || a.includes("sauterne") ||
-      a.includes("saint-émilion") || a.includes("médoc")) return "bdx";
-  if (a.includes("bourgogne") || a.includes("pommard") || a.includes("nuits") ||
-      a.includes("beaune") || a.includes("mersault") || a.includes("santenay") ||
-      a.includes("mercurey") || a.includes("givry") || a.includes("mâcon") ||
-      a.includes("chablis") || a.includes("pouilly") || a.includes("marsannay") ||
-      a.includes("vosne") || a.includes("ladoix") || a.includes("corton") ||
-      a.includes("beaujolais") || a.includes("brouilly") || a.includes("crozes")) return "brg";
-  if (a.includes("châteauneuf") || a.includes("rhone") || a.includes("rhône") ||
-      a.includes("hermitage")) return "bdx";
-  return "autre"; // Valais, Suisse, Provence, etc → fiasque
+const a = (appellation||””).toLowerCase();
+const n = (nom||””).toLowerCase();
+if (a.includes(“alsace”) || a.includes(“riesling”) || n.includes(“riesling”)) return “als”;
+if (a.includes(“bordeaux”) || a.includes(“pauillac”) || a.includes(“saint-julien”) ||
+a.includes(“pomerol”) || a.includes(“margaux”) || a.includes(“sauterne”) ||
+a.includes(“saint-émilion”) || a.includes(“médoc”)) return “bdx”;
+if (a.includes(“bourgogne”) || a.includes(“pommard”) || a.includes(“nuits”) ||
+a.includes(“beaune”) || a.includes(“mersault”) || a.includes(“santenay”) ||
+a.includes(“mercurey”) || a.includes(“givry”) || a.includes(“mâcon”) ||
+a.includes(“chablis”) || a.includes(“pouilly”) || a.includes(“marsannay”) ||
+a.includes(“vosne”) || a.includes(“ladoix”) || a.includes(“corton”) ||
+a.includes(“beaujolais”) || a.includes(“brouilly”) || a.includes(“crozes”)) return “brg”;
+if (a.includes(“châteauneuf”) || a.includes(“rhone”) || a.includes(“rhône”) ||
+a.includes(“hermitage”)) return “bdx”;
+return “autre”; // Valais, Suisse, Provence, etc → fiasque
 }
 
 // Google Sheets
 async function gsGet() {
-  const res = await fetch(GS_URL, { redirect:"follow" });
-  return await res.json();
+const res = await fetch(GS_URL, { redirect:“follow” });
+return await res.json();
 }
 async function gsSet(wines, positions) {
-  await fetch(GS_URL, { method:"POST", redirect:"follow", body: JSON.stringify({ wines, positions }) });
+await fetch(GS_URL, { method:“POST”, redirect:“follow”, body: JSON.stringify({ wines, positions }) });
 }
 
 // ── Cave visual constants ──────────────────────────────
@@ -75,635 +76,711 @@ const LABEL_W = 20;
 const INNER_W = LABEL_W + ZZ_W + 4;
 const TOTAL_W = INNER_W + POST * 2;
 const SECTIONS = [
-  { id:"L", label:"Gauche — 124cm", rangees:8  },
-  { id:"R", label:"Droite — 179cm",  rangees:16 },
+{ id:“L”, label:“Gauche — 124cm”, rangees:8  },
+{ id:“R”, label:“Droite — 179cm”,  rangees:16 },
 ];
 
-const capCol = { rouge:"#c0392b", blanc:"#c8c8a0", rosé:"#e890a8", champagne:"#d4a820", autre:"#888" };
-const glassC = { rouge:"#180700", blanc:"#485c18", rosé:"#58202e", champagne:"#484010", autre:"#282830" };
-const glassL = { rouge:"#2c1004", blanc:"#687c28", rosé:"#783646", champagne:"#68601e", autre:"#383840" };
+const capCol = { rouge:”#c0392b”, blanc:”#c8c8a0”, rosé:”#e890a8”, champagne:”#d4a820”, autre:”#888” };
+const glassC = { rouge:”#180700”, blanc:”#485c18”, rosé:”#58202e”, champagne:”#484010”, autre:”#282830” };
+const glassL = { rouge:”#2c1004”, blanc:”#687c28”, rosé:”#783646”, champagne:”#68601e”, autre:”#383840” };
 
 // Build zigzag SVG path
 const buildZZPath = () => {
-  let d = `M0,${PEAK_Y}`;
-  for (let i = 0; i < COLS; i++) {
-    d += ` L${(i+0.5)*SLOT},${VALLEY_Y}`;
-    d += ` L${(i+1)*SLOT},${PEAK_Y}`;
-  }
-  return d;
+let d = `M0,${PEAK_Y}`;
+for (let i = 0; i < COLS; i++) {
+d += ` L${(i+0.5)*SLOT},${VALLEY_Y}`;
+d += ` L${(i+1)*SLOT},${PEAK_Y}`;
+}
+return d;
 };
 const ZZ_PATH = buildZZPath();
 
-const wood = "#d8bc7a", woodDk = "#b09050", woodLt = "#eedca0";
+const wood = “#d8bc7a”, woodDk = “#b09050”, woodLt = “#eedca0”;
 
 // ── Bottle SVG ─────────────────────────────────────────
 function BottleSVG({ wine, cx, cy, ck, selected, onSelect }) {
-  const sel = selected === ck;
-  if (!wine) return (
-    <g onClick={()=>onSelect(sel?null:ck)} style={{cursor:"pointer"}}>
-      <circle cx={cx} cy={cy} r={BR} fill="rgba(0,0,0,0.04)" stroke="#aaa" strokeWidth="0.7" strokeDasharray="2,2"/>
-    </g>
-  );
-  const shape = detectShape(wine.appellation, wine.nom);
-  const gc = glassC[wine.type]||glassC.autre;
-  const gl = glassL[wine.type]||glassL.autre;
-  const cap = capCol[wine.type]||capCol.autre;
-  const isAls   = shape==="als";
-  const isAutre = shape==="autre";
-  const r    = shape==="brg" ? BR-1 : isAls ? null : isAutre ? BR+1 : BR;
-  const punt = shape==="brg" ? 5 : isAutre ? 8 : 3;
-  const sc   = sel ? 1.18 : 1;
-  return (
-    <g onClick={()=>onSelect(sel?null:ck)} style={{cursor:"pointer"}}
-      transform={`translate(${cx},${cy}) scale(${sc}) translate(${-cx},${-cy})`}>
-      {isAls
-        ? <ellipse cx={cx} cy={cy} rx={BR-3} ry={BR} fill={gc} stroke="#111" strokeWidth="0.8"/>
-        : <circle cx={cx} cy={cy} r={r} fill={gc} stroke="#111" strokeWidth="0.8"/>}
-      <circle cx={cx} cy={cy} r={isAutre?r-1:r-2} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.4"/>
-      {isAutre && <circle cx={cx} cy={cy} r={r-4} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.3"/>}
-      <circle cx={cx} cy={cy} r={punt} fill={gl} opacity={isAutre?0.5:0.7}/>
-      <circle cx={cx} cy={cy} r={punt-1.5} fill={gc} opacity="0.9"/>
-      <circle cx={cx} cy={cy} r="2.2" fill={cap}/>
-      <circle cx={cx} cy={cy} r="1" fill="rgba(255,255,255,0.5)"/>
-      <path d={isAls
-          ? `M${cx-BR*0.4} ${cy-BR*0.6}Q${cx} ${cy-BR*0.8} ${cx+BR*0.4} ${cy-BR*0.5}`
-          : `M${cx-BR*0.5} ${cy-BR*0.55}Q${cx} ${cy-BR*0.75} ${cx+BR*0.5} ${cy-BR*0.45}`}
-        fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="1.3" strokeLinecap="round"/>
-      {sel && (isAls
-        ? <ellipse cx={cx} cy={cy} rx={BR-3} ry={BR} fill="none" stroke="#c8a030" strokeWidth="2"/>
-        : <circle cx={cx} cy={cy} r={r} fill="none" stroke="#c8a030" strokeWidth="2"/>)}
-    </g>
-  );
+const sel = selected === ck;
+if (!wine) return (
+<g onClick={()=>onSelect(sel?null:ck)} style={{cursor:“pointer”}}>
+<circle cx={cx} cy={cy} r={BR} fill="rgba(0,0,0,0.04)" stroke="#aaa" strokeWidth="0.7" strokeDasharray="2,2"/>
+</g>
+);
+const shape = detectShape(wine.appellation, wine.nom);
+const gc = glassC[wine.type]||glassC.autre;
+const gl = glassL[wine.type]||glassL.autre;
+const cap = capCol[wine.type]||capCol.autre;
+const isAls   = shape===“als”;
+const isAutre = shape===“autre”;
+const r    = shape===“brg” ? BR-1 : isAls ? null : isAutre ? BR+1 : BR;
+const punt = shape===“brg” ? 5 : isAutre ? 8 : 3;
+const sc   = sel ? 1.18 : 1;
+return (
+<g onClick={()=>onSelect(sel?null:ck)} style={{cursor:“pointer”}}
+transform={`translate(${cx},${cy}) scale(${sc}) translate(${-cx},${-cy})`}>
+{isAls
+? <ellipse cx={cx} cy={cy} rx={BR-3} ry={BR} fill={gc} stroke="#111" strokeWidth="0.8"/>
+: <circle cx={cx} cy={cy} r={r} fill={gc} stroke="#111" strokeWidth="0.8"/>}
+<circle cx={cx} cy={cy} r={isAutre?r-1:r-2} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.4"/>
+{isAutre && <circle cx={cx} cy={cy} r={r-4} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.3"/>}
+<circle cx={cx} cy={cy} r={punt} fill={gl} opacity={isAutre?0.5:0.7}/>
+<circle cx={cx} cy={cy} r={punt-1.5} fill={gc} opacity="0.9"/>
+<circle cx={cx} cy={cy} r="2.2" fill={cap}/>
+<circle cx={cx} cy={cy} r="1" fill="rgba(255,255,255,0.5)"/>
+<path d={isAls
+? `M${cx-BR*0.4} ${cy-BR*0.6}Q${cx} ${cy-BR*0.8} ${cx+BR*0.4} ${cy-BR*0.5}`
+: `M${cx-BR*0.5} ${cy-BR*0.55}Q${cx} ${cy-BR*0.75} ${cx+BR*0.5} ${cy-BR*0.45}`}
+fill=“none” stroke=“rgba(255,255,255,0.15)” strokeWidth=“1.3” strokeLinecap=“round”/>
+{sel && (isAls
+? <ellipse cx={cx} cy={cy} rx={BR-3} ry={BR} fill="none" stroke="#c8a030" strokeWidth="2"/>
+: <circle cx={cx} cy={cy} r={r} fill="none" stroke="#c8a030" strokeWidth="2"/>)}
+</g>
+);
 }
 
 // ── Main App ────────────────────────────────────────────
 function App() {
-  const [unlocked, setUnlocked] = useState(()=>sessionStorage.getItem("cave_pin")===PIN_CODE);
-  const [pinInput, setPinInput] = useState("");
-  const [pinError, setPinError] = useState(false);
+const [unlocked, setUnlocked] = useState(()=>sessionStorage.getItem(“cave_pin”)===PIN_CODE);
+const [pinInput, setPinInput] = useState(””);
+const [pinError, setPinError] = useState(false);
 
-  const [wines, setWines]         = useState([]);
-  const [positions, setPositions] = useState({});
-  const [ready, setReady]         = useState(false);
-  const [syncing, setSyncing]     = useState(false);
-  const [lastSync, setLastSync]   = useState(null);
-  const [view, setView]           = useState("map");
-  const [selectedCell, setSelectedCell] = useState(null);
-  const [assignMode, setAssignMode]     = useState(null);
-  const [messages, setMessages] = useState([
-    { role:"assistant", content:"Bonjour ! Je suis votre sommelier personnel 🍷\n\nPosez-moi vos questions sur les accords mets-vins, le service ou quand ouvrir vos bouteilles." }
-  ]);
-  const [input, setInput]   = useState("");
-  const [loading, setLoading] = useState(false);
-  const [newWine, setNewWine] = useState({ nom:"", appellation:"", millesime:"", quantite:1, type:"rouge" });
-  const [editId, setEditId]   = useState(null);
-  const [toast, setToast]     = useState(null);
-  const messagesEnd = useRef(null);
-  const saveTimer   = useRef(null);
-  const winesRef    = useRef(wines);
-  const posRef      = useRef(positions);
+const [wines, setWines]         = useState([]);
+const [positions, setPositions] = useState({});
+const [ready, setReady]         = useState(false);
+const [syncing, setSyncing]     = useState(false);
+const [lastSync, setLastSync]   = useState(null);
+const [view, setView]           = useState(“map”);
+const [selectedCell, setSelectedCell] = useState(null);
+const [assignMode, setAssignMode]     = useState(null);
+const [messages, setMessages] = useState([
+{ role:“assistant”, content:“Bonjour ! Je suis votre sommelier personnel 🍷\n\nPosez-moi vos questions sur les accords mets-vins, le service ou quand ouvrir vos bouteilles.” }
+]);
+const [input, setInput]   = useState(””);
+const [loading, setLoading] = useState(false);
+const [newWine, setNewWine] = useState({ nom:””, appellation:””, millesime:””, quantite:1, type:“rouge” });
+const [editId, setEditId]   = useState(null);
+const [toast, setToast]     = useState(null);
+const messagesEnd = useRef(null);
+const saveTimer   = useRef(null);
+const winesRef    = useRef(wines);
+const posRef      = useRef(positions);
 
-  useEffect(()=>{ winesRef.current=wines; },[wines]);
-  useEffect(()=>{ posRef.current=positions; },[positions]);
-  useEffect(()=>{ if(messagesEnd.current) messagesEnd.current.scrollIntoView({behavior:"smooth"}); },[messages,loading]);
+useEffect(()=>{ winesRef.current=wines; },[wines]);
+useEffect(()=>{ posRef.current=positions; },[positions]);
+useEffect(()=>{ if(messagesEnd.current) messagesEnd.current.scrollIntoView({behavior:“smooth”}); },[messages,loading]);
 
-  useEffect(()=>{
-    if (!unlocked) return;
-    (async()=>{
-      try {
-        setSyncing(true);
-        const data = await gsGet();
-        setWines(data.wines||[]);
-        setPositions(data.positions||{});
-        setLastSync(new Date());
-      } catch(e){ showToast("⚠️ Impossible de charger la cave","#7a5a00"); }
-      setSyncing(false); setReady(true);
-    })();
-  },[unlocked]);
+useEffect(()=>{
+if (!unlocked) return;
+(async()=>{
+try {
+setSyncing(true);
+const data = await gsGet();
+setWines(data.wines||[]);
+setPositions(data.positions||{});
+setLastSync(new Date());
+} catch(e){ showToast(“⚠️ Impossible de charger la cave”,”#7a5a00”); }
+setSyncing(false); setReady(true);
+})();
+},[unlocked]);
 
-  const showToast = (msg,color="#3a6a3a")=>{ setToast({msg,color}); setTimeout(()=>setToast(null),2800); };
+const showToast = (msg,color=”#3a6a3a”)=>{ setToast({msg,color}); setTimeout(()=>setToast(null),2800); };
 
-  const scheduleSave = (w,p) => {
-    if(saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(async()=>{
-      try{ setSyncing(true); await gsSet(w,p); setLastSync(new Date()); }
-      catch(e){ showToast("⚠️ Erreur sauvegarde","#7a5a00"); }
-      setSyncing(false);
-    },1200);
-  };
+const scheduleSave = (w,p) => {
+if(saveTimer.current) clearTimeout(saveTimer.current);
+saveTimer.current = setTimeout(async()=>{
+try{ setSyncing(true); await gsSet(w,p); setLastSync(new Date()); }
+catch(e){ showToast(“⚠️ Erreur sauvegarde”,”#7a5a00”); }
+setSyncing(false);
+},1200);
+};
 
-  const updateWines     = u=>{ setWines(u);     scheduleSave(u,posRef.current); };
-  const updatePositions = u=>{ setPositions(u); scheduleSave(winesRef.current,u); };
+const updateWines     = u=>{ setWines(u);     scheduleSave(u,posRef.current); };
+const updatePositions = u=>{ setPositions(u); scheduleSave(winesRef.current,u); };
 
-  const winePositionMap = {};
-  Object.entries(positions).forEach(([cell,wid])=>{
-    if(!winePositionMap[wid]) winePositionMap[wid]=[];
-    winePositionMap[wid].push(cell);
-  });
+const winePositionMap = {};
+Object.entries(positions).forEach(([cell,wid])=>{
+if(!winePositionMap[wid]) winePositionMap[wid]=[];
+winePositionMap[wid].push(cell);
+});
 
-  const handleCellClick = ck => {
-    if(assignMode){
-      const p={...positions};
-      if(p[ck]===assignMode) delete p[ck]; else p[ck]=assignMode;
-      updatePositions(p);
-    } else {
-      setSelectedCell(ck===selectedCell?null:ck);
-    }
-  };
+const handleCellClick = ck => {
+if(assignMode){
+const p={…positions};
+if(p[ck]===assignMode) delete p[ck]; else p[ck]=assignMode;
+updatePositions(p);
+} else {
+setSelectedCell(ck===selectedCell?null:ck);
+}
+};
 
-  const sendMessage = async()=>{
-    if(!input.trim()||loading) return;
-    const userMsg=input.trim(); setInput("");
-    setMessages(prev=>[...prev,{role:"user",content:userMsg}]);
-    setLoading(true);
-    const caveCtx = wines.length===0 ? "La cave est vide." :
-      "Cave :\n"+wines.map(w=>{
-        const cells=winePositionMap[w.id]||[];
-        return `- ${WINE_COLORS[w.type]} ${w.nom} (${w.appellation}), ${w.millesime}, ${w.quantite} btl${cells.length?" pos:"+cells.join(","):""}`;
-      }).join("\n");
-    const history=messages.map(m=>({role:m.role,content:m.content}));
-    history.push({role:"user",content:userMsg});
-    try{
-      const res=await fetch("https://api.anthropic.com/v1/messages",{
-        method:"POST",headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,
-          system:`Tu es un sommelier expert. Français, élégant et précis.\n${caveCtx}\nConseille accords, garde, service. Ne jamais inventer de vins absents.`,
-          messages:history})
-      });
-      const data=await res.json();
-      const reply=(data.content&&data.content.find(b=>b.type==="text")||{}).text||"Désolé, erreur.";
-      setMessages(prev=>[...prev,{role:"assistant",content:reply}]);
-    } catch(e){ setMessages(prev=>[...prev,{role:"assistant",content:"Erreur de connexion."}]); }
-    setLoading(false);
-  };
+const sendMessage = async()=>{
+if(!input.trim()||loading) return;
+const userMsg=input.trim(); setInput(””);
+setMessages(prev=>[…prev,{role:“user”,content:userMsg}]);
+setLoading(true);
+const caveCtx = wines.length===0 ? “La cave est vide.” :
+“Cave :\n”+wines.map(w=>{
+const cells=winePositionMap[w.id]||[];
+return `- ${WINE_COLORS[w.type]} ${w.nom} (${w.appellation}), ${w.millesime}, ${w.quantite} btl${cells.length?" pos:"+cells.join(","):""}`;
+}).join(”\n”);
+const history=messages.map(m=>({role:m.role,content:m.content}));
+history.push({role:“user”,content:userMsg});
+const apiKey = lsGet(“cave_apikey”)||””;
+if(!apiKey){ setMessages(prev=>[…prev,{role:“assistant”,content:“⚠️ Clé API manquante — ajoutez-la dans ⚙️ Réglages pour utiliser le Sommelier.”}]); setLoading(false); return; }
+try{
+const res=await fetch(“https://api.anthropic.com/v1/messages”,{
+method:“POST”,
+headers:{“Content-Type”:“application/json”,“x-api-key”:apiKey,“anthropic-version”:“2023-06-01”,“anthropic-dangerous-direct-browser-access”:“true”},
+body:JSON.stringify({model:“claude-sonnet-4-20250514”,max_tokens:1000,
+system:`Tu es un sommelier expert. Français, élégant et précis.\n${caveCtx}\nConseille accords, garde, service. Ne jamais inventer de vins absents.`,
+messages:history})
+});
+const data=await res.json();
+const reply=(data.content&&data.content.find(b=>b.type===“text”)||{}).text||“Désolé, erreur.”;
+setMessages(prev=>[…prev,{role:“assistant”,content:reply}]);
+} catch(e){ setMessages(prev=>[…prev,{role:“assistant”,content:“Erreur de connexion.”}]); }
+setLoading(false);
+};
 
-  const addOrUpdateWine=()=>{
-    if(!newWine.nom.trim()) return;
-    let updated;
-    if(editId!==null){
-      updated=wines.map(w=>w.id===editId?{...newWine,id:editId}:w);
-      setEditId(null); showToast("✅ Vin modifié");
-    } else {
-      updated=[...wines,{...newWine,id:Date.now()}];
-      showToast("✅ Vin ajouté");
-    }
-    updateWines(updated);
-    setNewWine({nom:"",appellation:"",millesime:"",quantite:1,type:"rouge"});
-    setView("cellar");
-  };
+const addOrUpdateWine=()=>{
+if(!newWine.nom.trim()) return;
+let updated;
+if(editId!==null){
+updated=wines.map(w=>w.id===editId?{…newWine,id:editId}:w);
+setEditId(null); showToast(“✅ Vin modifié”);
+} else {
+updated=[…wines,{…newWine,id:Date.now()}];
+showToast(“✅ Vin ajouté”);
+}
+updateWines(updated);
+setNewWine({nom:””,appellation:””,millesime:””,quantite:1,type:“rouge”});
+setView(“cellar”);
+};
 
-  const deleteWine=id=>{
-    const newW=wines.filter(w=>w.id!==id);
-    const newP={...positions};
-    Object.keys(newP).forEach(k=>{ if(newP[k]===id) delete newP[k]; });
-    setWines(newW); setPositions(newP); scheduleSave(newW,newP);
-    showToast("🗑️ Supprimé","#6a2a2a");
-  };
+const deleteWine=id=>{
+const newW=wines.filter(w=>w.id!==id);
+const newP={…positions};
+Object.keys(newP).forEach(k=>{ if(newP[k]===id) delete newP[k]; });
+setWines(newW); setPositions(newP); scheduleSave(newW,newP);
+showToast(“🗑️ Supprimé”,”#6a2a2a”);
+};
 
-  const startEdit=w=>{
-    setNewWine({nom:w.nom,appellation:w.appellation,millesime:w.millesime,quantite:w.quantite,type:w.type});
-    setEditId(w.id); setView("add");
-  };
+const startEdit=w=>{
+setNewWine({nom:w.nom,appellation:w.appellation,millesime:w.millesime,quantite:w.quantite,type:w.type});
+setEditId(w.id); setView(“add”);
+};
 
-  const manualSync=async()=>{
-    try{
-      setSyncing(true);
-      const data=await gsGet();
-      setWines(data.wines||[]); setPositions(data.positions||{});
-      setLastSync(new Date()); showToast("✅ Cave synchronisée !");
-    } catch(e){ showToast("⚠️ Erreur sync","#7a5a00"); }
-    setSyncing(false);
-  };
+const manualSync=async()=>{
+try{
+setSyncing(true);
+const data=await gsGet();
+setWines(data.wines||[]); setPositions(data.positions||{});
+setLastSync(new Date()); showToast(“✅ Cave synchronisée !”);
+} catch(e){ showToast(“⚠️ Erreur sync”,”#7a5a00”); }
+setSyncing(false);
+};
 
-  const totalCells    = SECTIONS.reduce((s,sec)=>s+sec.rangees*COLS,0);
-  const occupiedCells = Object.keys(positions).length;
-  const totalBottles  = wines.reduce((s,w)=>s+Number(w.quantite),0);
-  const selectedWine  = selectedCell ? wines.find(w=>w.id===positions[selectedCell]) : null;
+const totalCells    = SECTIONS.reduce((s,sec)=>s+sec.rangees*COLS,0);
+const occupiedCells = Object.keys(positions).length;
+const totalBottles  = wines.reduce((s,w)=>s+Number(w.quantite),0);
+const selectedWine  = selectedCell ? wines.find(w=>w.id===positions[selectedCell]) : null;
 
-  // ── PIN SCREEN ──────────────────────────────────────
-  if(!unlocked) return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-      height:"100vh",background:"#1a0a00",gap:20,padding:30}}>
-      <div style={{fontSize:48}}>🍷</div>
-      <div style={{fontSize:20,fontWeight:"bold",letterSpacing:1}}>Mon Caviste</div>
-      <div style={{fontSize:13,color:"#9a6a4a"}}>Entrez votre code PIN</div>
-      <input type="password" inputMode="numeric" maxLength={6}
-        value={pinInput} onChange={e=>setPinInput(e.target.value)}
-        onKeyDown={e=>{ if(e.key==="Enter"){
-          if(pinInput===PIN_CODE){sessionStorage.setItem("cave_pin",PIN_CODE);setUnlocked(true);}
-          else{setPinError(true);setPinInput("");setTimeout(()=>setPinError(false),1500);}
-        }}}
-        placeholder="• • • •"
-        style={{width:160,padding:"12px",textAlign:"center",fontSize:22,letterSpacing:8,
-          background:"#2a1500",border:`1px solid ${pinError?"#c47a6a":"#5a2a00"}`,
-          color:"#f5e6c8",borderRadius:10,outline:"none"}} autoFocus/>
-      {pinError && <div style={{color:"#c47a6a",fontSize:13}}>Code incorrect</div>}
-      <button onClick={()=>{
-        if(pinInput===PIN_CODE){sessionStorage.setItem("cave_pin",PIN_CODE);setUnlocked(true);}
-        else{setPinError(true);setPinInput("");setTimeout(()=>setPinError(false),1500);}
-      }} style={{padding:"10px 30px",borderRadius:10,background:"#8b2a00",border:"none",color:"#f5e6c8",fontSize:15,cursor:"pointer"}}>
-        Entrer
-      </button>
-    </div>
-  );
+// ── PIN SCREEN ──────────────────────────────────────
+if(!unlocked) return (
+<div style={{display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,
+height:“100vh”,background:”#1a0a00”,gap:20,padding:30}}>
+<div style={{fontSize:48}}>🍷</div>
+<div style={{fontSize:20,fontWeight:“bold”,letterSpacing:1}}>Mon Caviste</div>
+<div style={{fontSize:13,color:”#9a6a4a”}}>Entrez votre code PIN</div>
+<input type=“password” inputMode=“numeric” maxLength={6}
+value={pinInput} onChange={e=>setPinInput(e.target.value)}
+onKeyDown={e=>{ if(e.key===“Enter”){
+if(pinInput===PIN_CODE){sessionStorage.setItem(“cave_pin”,PIN_CODE);setUnlocked(true);}
+else{setPinError(true);setPinInput(””);setTimeout(()=>setPinError(false),1500);}
+}}}
+placeholder=”• • • •”
+style={{width:160,padding:“12px”,textAlign:“center”,fontSize:22,letterSpacing:8,
+background:”#2a1500”,border:`1px solid ${pinError?"#c47a6a":"#5a2a00"}`,
+color:”#f5e6c8”,borderRadius:10,outline:“none”}} autoFocus/>
+{pinError && <div style={{color:”#c47a6a”,fontSize:13}}>Code incorrect</div>}
+<button onClick={()=>{
+if(pinInput===PIN_CODE){sessionStorage.setItem(“cave_pin”,PIN_CODE);setUnlocked(true);}
+else{setPinError(true);setPinInput(””);setTimeout(()=>setPinError(false),1500);}
+}} style={{padding:“10px 30px”,borderRadius:10,background:”#8b2a00”,border:“none”,color:”#f5e6c8”,fontSize:15,cursor:“pointer”}}>
+Entrer
+</button>
+</div>
+);
 
-  if(!ready) return (
-    <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-      height:"100vh",color:"#c4916a",fontSize:16,background:"#1a0a00",gap:12}}>
-      <div style={{fontSize:40}}>🍷</div>
-      <div>Chargement de votre cave…</div>
-      <div style={{fontSize:11,color:"#5a3a00"}}>Connexion à Google Sheets…</div>
-    </div>
-  );
+if(!ready) return (
+<div style={{display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,
+height:“100vh”,color:”#c4916a”,fontSize:16,background:”#1a0a00”,gap:12}}>
+<div style={{fontSize:40}}>🍷</div>
+<div>Chargement de votre cave…</div>
+<div style={{fontSize:11,color:”#5a3a00”}}>Connexion à Google Sheets…</div>
+</div>
+);
 
-  // ── CAVE MAP ────────────────────────────────────────
-  const ShelfRow = ({ row, secId }) => {
-    const zzY = BR*2+4;
-    return (
-      <div style={{display:"flex",alignItems:"center",marginBottom:3}}>
-        <div style={{width:LABEL_W,flexShrink:0,fontSize:8,color:"#888",textAlign:"right",paddingRight:4}}>
-          {row+1}
-        </div>
-        <svg width={ZZ_W} height={ROW_H} viewBox={`0 0 ${ZZ_W} ${ROW_H}`} style={{overflow:"visible"}}>
-          {/* Bottles */}
-          {Array.from({length:COLS},(_,col)=>{
-            const ck=`${secId}-${row}-${col}`;
-            const wid=positions[ck];
-            const wine=wid?wines.find(w=>w.id===wid):null;
-            return <BottleSVG key={col} wine={wine} cx={(col+0.5)*SLOT} cy={BR+1} ck={ck}
-              selected={selectedCell} onSelect={handleCellClick}/>;
-          })}
-          {/* Zigzag */}
-          <g transform={`translate(0,${zzY})`}>
-            <path d={ZZ_PATH} fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="5"
-              strokeLinecap="round" strokeLinejoin="round" transform="translate(0,1.5)"/>
-            <path d={ZZ_PATH} fill="none" stroke="#5a5a5a" strokeWidth="4.5"
-              strokeLinecap="round" strokeLinejoin="round"/>
-            <path d={ZZ_PATH} fill="none" stroke="#909090" strokeWidth="1.5"
-              strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
-            {Array.from({length:COLS+1},(_,i)=>(
-              <g key={i}>
-                <circle cx={i*SLOT} cy={PEAK_Y} r="4" fill="#484848" stroke="#383838" strokeWidth="0.5"/>
-                <circle cx={i*SLOT} cy={PEAK_Y} r="1.8" fill="#707070"/>
-              </g>
-            ))}
-          </g>
-        </svg>
-      </div>
-    );
-  };
+// ── CAVE MAP ────────────────────────────────────────
+const ShelfRow = ({ row, secId }) => {
+const zzY = BR*2+4;
+return (
+<div style={{display:“flex”,alignItems:“center”,marginBottom:3}}>
+<div style={{width:LABEL_W,flexShrink:0,fontSize:8,color:”#888”,textAlign:“right”,paddingRight:4}}>
+{row+1}
+</div>
+<svg width={ZZ_W} height={ROW_H} viewBox={`0 0 ${ZZ_W} ${ROW_H}`} style={{overflow:“visible”}}>
+{/* Bottles */}
+{Array.from({length:COLS},(_,col)=>{
+const ck=`${secId}-${row}-${col}`;
+const wid=positions[ck];
+const wine=wid?wines.find(w=>w.id===wid):null;
+return <BottleSVG key={col} wine={wine} cx={(col+0.5)*SLOT} cy={BR+1} ck={ck}
+selected={selectedCell} onSelect={handleCellClick}/>;
+})}
+{/* Zigzag */}
+<g transform={`translate(0,${zzY})`}>
+<path d={ZZ_PATH} fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="5"
+strokeLinecap="round" strokeLinejoin="round" transform="translate(0,1.5)"/>
+<path d={ZZ_PATH} fill="none" stroke="#5a5a5a" strokeWidth="4.5"
+strokeLinecap="round" strokeLinejoin="round"/>
+<path d={ZZ_PATH} fill="none" stroke="#909090" strokeWidth="1.5"
+strokeLinecap="round" strokeLinejoin="round" opacity="0.6"/>
+{Array.from({length:COLS+1},(_,i)=>(
+<g key={i}>
+<circle cx={i*SLOT} cy={PEAK_Y} r="4" fill="#484848" stroke="#383838" strokeWidth="0.5"/>
+<circle cx={i*SLOT} cy={PEAK_Y} r="1.8" fill="#707070"/>
+</g>
+))}
+</g>
+</svg>
+</div>
+);
+};
 
-  const renderMap = () => (
-    <div style={{flex:1,overflowY:"auto",background:"#bebebe",padding:"12px 10px"}}>
-      <div style={{display:"flex",alignItems:"center",marginBottom:10}}>
-        <span style={{fontSize:10,color:"#666"}}>{occupiedCells}/{totalCells} positions · {totalCells-occupiedCells} libres</span>
-        {assignMode && (
-          <button onClick={()=>setAssignMode(null)}
-            style={{marginLeft:"auto",padding:"4px 12px",borderRadius:11,background:"#8b2a00",border:"none",
-              color:"#fff",cursor:"pointer",fontSize:11,fontWeight:"bold"}}>
-            ✓ Fin placement
-          </button>
-        )}
-      </div>
+const renderMap = () => (
+<div style={{flex:1,overflowY:“auto”,background:”#bebebe”,padding:“12px 10px”}}>
+<div style={{display:“flex”,alignItems:“center”,marginBottom:10}}>
+<span style={{fontSize:10,color:”#666”}}>{occupiedCells}/{totalCells} positions · {totalCells-occupiedCells} libres</span>
+{assignMode && (
+<button onClick={()=>setAssignMode(null)}
+style={{marginLeft:“auto”,padding:“4px 12px”,borderRadius:11,background:”#8b2a00”,border:“none”,
+color:”#fff”,cursor:“pointer”,fontSize:11,fontWeight:“bold”}}>
+✓ Fin placement
+</button>
+)}
+</div>
 
-      {/* Meubles */}
-      <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
-        {SECTIONS.map(sec=>{
-          const ih = sec.rangees*(ROW_H+3)+10;
-          const totalH = 14+ih+14+40;
-          return (
-            <div key={sec.id}>
-              <div style={{fontSize:9,color:"#777",marginBottom:4}}>{sec.label}</div>
-              <div style={{width:TOTAL_W,position:"relative"}}>
-                <div style={{position:"absolute",left:0,top:0,width:POST,height:totalH,zIndex:10,
-                  background:`linear-gradient(to right,${woodDk},${wood},${woodLt},${wood},${woodDk})`,
-                  boxShadow:"2px 0 5px rgba(0,0,0,0.2)"}}/>
-                <div style={{position:"absolute",right:0,top:0,width:POST,height:totalH,zIndex:10,
-                  background:`linear-gradient(to left,${woodDk},${wood},${woodLt},${wood},${woodDk})`,
-                  boxShadow:"-2px 0 5px rgba(0,0,0,0.2)"}}/>
-                <div style={{position:"relative",zIndex:11,height:14,
-                  background:`linear-gradient(to bottom,${woodLt},${woodDk})`,
-                  boxShadow:"0 3px 8px rgba(0,0,0,0.25)"}}/>
-                <div style={{marginLeft:POST,width:INNER_W,background:"#cccccc",
-                  padding:"6px 4px 6px 0",height:ih,position:"relative",zIndex:1,
-                  boxShadow:"inset 0 2px 10px rgba(0,0,0,0.1)"}}>
-                  {Array.from({length:sec.rangees}).map((_,row)=>(
-                    <ShelfRow key={row} row={row} secId={sec.id}/>
-                  ))}
-                </div>
-                <div style={{position:"relative",zIndex:11,height:14,
-                  background:`linear-gradient(to bottom,${woodDk},${wood})`,
-                  boxShadow:"0 -2px 5px rgba(0,0,0,0.15)"}}/>
-                <div style={{position:"relative",zIndex:9,display:"flex",justifyContent:"space-between",width:TOTAL_W}}>
-                  <div style={{width:POST,height:40,background:`linear-gradient(to right,${woodDk},${wood})`,borderRadius:"0 0 4px 4px"}}/>
-                  <div style={{width:POST,height:40,background:`linear-gradient(to left,${woodDk},${wood})`,borderRadius:"0 0 4px 4px"}}/>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Selected cell info */}
-      {selectedCell && !assignMode && (()=>{
-        const parts=selectedCell.split("-");
-        const sec=SECTIONS.find(s=>s.id===parts[0]);
-        return (
-          <div style={{background:"rgba(255,255,255,0.92)",border:"1px solid #c0a870",
-            borderRadius:10,padding:"12px 14px",marginTop:12,boxShadow:"0 2px 12px rgba(0,0,0,0.12)"}}>
-            <div style={{fontSize:10,color:"#9a8060",marginBottom:5}}>
-              📍 {sec?.label} · Rangée {Number(parts[1])+1} · Col. {Number(parts[2])+1}
-            </div>
-            {selectedWine ? (
-              <>
-                <div style={{fontWeight:"bold",fontSize:15,color:"#1a0a00"}}>{selectedWine.nom}</div>
-                <div style={{color:"#8a6040",fontSize:13,marginTop:2}}>{selectedWine.appellation}</div>
-                <div style={{color:"#a06818",fontSize:14,marginTop:2}}>🗓 {selectedWine.millesime}</div>
-                <div style={{color:"#9a8060",fontSize:11,marginTop:2}}>🍾 {selectedWine.quantite} bouteille{selectedWine.quantite>1?"s":""}</div>
-                <div style={{display:"flex",gap:8,marginTop:10}}>
-                  <button onClick={()=>{ const p={...positions}; delete p[selectedCell]; updatePositions(p); setSelectedCell(null); }}
-                    style={{flex:1,padding:"6px",borderRadius:8,background:"#fee",border:"1px solid #fcc",color:"#c00",cursor:"pointer",fontSize:12}}>
-                    🗑️ Retirer</button>
-                  <button onClick={()=>{ setAssignMode(selectedWine.id); setSelectedCell(null); }}
-                    style={{flex:1,padding:"6px",borderRadius:8,background:"#f5f0e8",border:"1px solid #c0a870",color:"#6a4a20",cursor:"pointer",fontSize:12}}>
-                    🔄 Changer</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{color:"#9a8060",fontSize:13,marginBottom:7}}>Case vide — choisir un vin :</div>
-                <div style={{display:"flex",flexDirection:"column",gap:5,maxHeight:150,overflowY:"auto"}}>
-                  {wines.map(w=>(
-                    <button key={w.id} onClick={()=>{ updatePositions({...positions,[selectedCell]:w.id}); setSelectedCell(null); }}
-                      style={{padding:"5px 10px",borderRadius:8,background:"#f5f0e8",border:"1px solid #c0a870",
-                        color:"#2a1a08",cursor:"pointer",fontSize:12,textAlign:"left"}}>
-                      {WINE_COLORS[w.type]} {w.nom} {w.millesime}
-                    </button>
-                  ))}
-                  {wines.length===0 && <div style={{fontSize:12,color:"#9a8060"}}>Ajoutez d'abord des vins dans Ma Cave</div>}
-                </div>
-              </>
-            )}
-          </div>
-        );
-      })()}
-
-      {assignMode && (
-        <div style={{background:"#fffbe8",border:"1px solid #d4a820",borderRadius:10,
-          padding:"9px 13px",marginTop:10}}>
-          <div style={{fontSize:13,color:"#8a6010",marginBottom:2}}>
-            Placement : <strong>{(wines.find(w=>w.id===assignMode)||{}).nom}</strong>
-          </div>
-          <div style={{fontSize:11,color:"#9a8060"}}>{(winePositionMap[assignMode]||[]).length} position(s) · Cliquez les cases</div>
-        </div>
-      )}
-
-      {/* Legend */}
-      <div style={{marginTop:14,display:"flex",gap:10,flexWrap:"wrap",paddingBottom:20}}>
-        {[
-          {s:"bdx",l:"Bordeaux",desc:"épaules droites",gc:"#180700",gl:"#2c1004",cap:"#c0392b",r:11,punt:3,isAls:false,isAutre:false},
-          {s:"brg",l:"Bourgogne",desc:"punt profond",gc:"#180700",gl:"#2c1004",cap:"#c0392b",r:10,punt:5,isAls:false,isAutre:false},
-          {s:"als",l:"Alsace",desc:"forme ovale",gc:"#485c18",gl:"#687c28",cap:"#c8c8a0",r:null,punt:3,isAls:true,isAutre:false},
-          {s:"autre",l:"Autre",desc:"fiasque / intern.",gc:"#282830",gl:"#383840",cap:"#888",r:13,punt:8,isAls:false,isAutre:true},
-        ].map(({s,l,desc,gc,gl,cap,r,punt,isAls,isAutre})=>(
-          <div key={s} style={{display:"flex",alignItems:"center",gap:5,fontSize:10,color:"#555"}}>
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              {isAls
-                ? <ellipse cx="12" cy="12" rx="6" ry="10" fill={gc} stroke="#111" strokeWidth="0.8"/>
-                : <circle cx="12" cy="12" r={r} fill={gc} stroke="#111" strokeWidth="0.8"/>}
-              <circle cx="12" cy="12" r={r?r-2:0} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.4"/>
-              {isAutre && <circle cx="12" cy="12" r={r-4} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.3"/>}
-              <circle cx="12" cy="12" r={punt} fill={gl} opacity={isAutre?0.5:0.7}/>
-              <circle cx="12" cy="12" r={punt-1.5} fill={gc} opacity="0.9"/>
-              <circle cx="12" cy="12" r="2" fill={cap}/>
-              <circle cx="12" cy="12" r="0.9" fill="rgba(255,255,255,0.5)"/>
-            </svg>
-            <div>
-              <div style={{fontWeight:"500"}}>{l}</div>
-              <div style={{fontSize:9,color:"#888"}}>{desc}</div>
-            </div>
-          </div>
-        ))}
-        {[["rouge","#c0392b"],["blanc","#c8c8a0"],["rosé","#e890a8"],["champagne","#d4a820"]].map(([t,c])=>(
-          <div key={t} style={{display:"flex",alignItems:"center",gap:3,fontSize:10,color:"#555"}}>
-            <div style={{width:8,height:8,borderRadius:"50%",background:c,border:"1px solid #999"}}/>
-            {t}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  // ── SETTINGS ────────────────────────────────────────
-  const renderSettings = () => (
-    <div style={{flex:1,overflowY:"auto",padding:18}}>
-      <div style={{fontSize:15,fontWeight:"bold",marginBottom:18}}>⚙️ Réglages</div>
-      <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
-        <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>☁️ Google Sheets</div>
-        <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.6,marginBottom:10}}>
-          Cave synchronisée automatiquement sur tous vos appareils.
-          {lastSync && <div style={{marginTop:4,color:"#6a8a6a"}}>Dernière sync : {lastSync.toLocaleTimeString()}</div>}
-        </div>
-        <button onClick={manualSync} disabled={syncing}
-          style={{width:"100%",padding:"10px",borderRadius:8,background:syncing?"#3a1500":"#2a4a2a",
-            border:"1px solid #3a6a3a",color:syncing?"#9a6a4a":"#8aaa8a",cursor:syncing?"not-allowed":"pointer",fontSize:13}}>
-          {syncing?"⏳ Synchronisation…":"🔄 Synchroniser maintenant"}
-        </button>
-      </div>
-      <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
-        <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>🔒 Code PIN</div>
-        <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.6}}>
-          Pour changer le PIN, modifiez la ligne<br/>
-          <code style={{color:"#e8a060"}}>const PIN_CODE = "1234"</code><br/>
-          dans le fichier index.html sur GitHub.
-        </div>
-      </div>
-      <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14}}>
-        <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>📲 Installer comme app</div>
-        <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.7}}>
-          <strong style={{color:"#c4916a"}}>iPhone (Safari) :</strong><br/>
-          Partager → "Sur l'écran d'accueil"<br/><br/>
-          <strong style={{color:"#c4916a"}}>PC (Chrome) :</strong><br/>
-          Icône ⊕ dans la barre d'adresse → "Installer"
-        </div>
-      </div>
-    </div>
-  );
-
-  // ── RENDER ──────────────────────────────────────────
-  return (
-    <div style={{fontFamily:"Georgia,serif",background:"#1a0a00",minHeight:"100vh",
-      color:"#f5e6c8",display:"flex",flexDirection:"column",maxWidth:520,margin:"0 auto"}}>
-
-      {toast && (
-        <div style={{position:"fixed",top:14,left:"50%",transform:"translateX(-50%)",
-          background:toast.color,color:"#fff",padding:"8px 18px",borderRadius:20,
-          fontSize:13,zIndex:999,boxShadow:"0 2px 12px #0006",whiteSpace:"nowrap"}}>
-          {toast.msg}
-        </div>
-      )}
-
-      <div style={{background:"linear-gradient(135deg,#3d0a00,#6b1a00)",padding:"12px 16px",borderBottom:"1px solid #8b3a00"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{fontSize:18,fontWeight:"bold",letterSpacing:1}}>🍷 Mon Caviste</div>
-          {syncing && <div style={{fontSize:10,color:"#c4916a"}}>⏳ Sync…</div>}
-        </div>
-        <div style={{fontSize:10,color:"#c4916a",marginTop:2}}>
-          {wines.length} vins · {totalBottles} bouteilles · {occupiedCells}/{totalCells} positions · ☁️ Google Sheets
-        </div>
-      </div>
-
-      <div style={{display:"flex",background:"#2a0e00",borderBottom:"1px solid #5a2a00"}}>
-        {[["map","🗺️ Plan"],["chat","💬 Sommelier"],["cellar","🗄️ Cave"],
-          ["add",editId!==null?"✏️ Modifier":"➕ Ajouter"],["settings","⚙️"]].map(([id,label])=>(
-          <button key={id} onClick={()=>{ setView(id); if(id!=="add") setEditId(null); }}
-            style={{flex:1,padding:"9px 2px",background:view===id?"#6b1a00":"transparent",
-              color:view===id?"#f5e6c8":"#9a6a4a",border:"none",cursor:"pointer",fontSize:10,
-              borderBottom:view===id?"2px solid #e8a060":"2px solid transparent"}}>
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {view==="map" && renderMap()}
-
-      {view==="chat" && (
-        <div style={{flex:1,display:"flex",flexDirection:"column"}}>
-          <div style={{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10,minHeight:350}}>
-            {messages.map((m,i)=>(
-              <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
-                <div style={{maxWidth:"82%",padding:"9px 13px",
-                  borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",
-                  background:m.role==="user"?"#6b1a00":"#2a1500",
-                  border:m.role==="assistant"?"1px solid #5a2a00":"none",
-                  fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap"}}>
-                  {m.role==="assistant" && <span style={{fontSize:10,color:"#c4916a",display:"block",marginBottom:3}}>🍷 Sommelier</span>}
-                  {m.content}
-                </div>
-              </div>
-            ))}
-            {loading && (
-              <div style={{display:"flex"}}>
-                <div style={{padding:"9px 13px",borderRadius:"18px 18px 18px 4px",background:"#2a1500",border:"1px solid #5a2a00",fontSize:13,color:"#c4916a"}}>✦ En réflexion…</div>
-              </div>
-            )}
-            <div ref={messagesEnd}/>
-          </div>
-          <div style={{padding:10,borderTop:"1px solid #3a1500",display:"flex",gap:7}}>
-            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMessage()}
-              placeholder="Ex: Quel vin avec un agneau rôti ?"
-              style={{flex:1,padding:"9px 13px",borderRadius:22,background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none"}}/>
-            <button onClick={sendMessage} disabled={loading||!input.trim()}
-              style={{padding:"9px 15px",borderRadius:22,background:loading?"#3a1500":"#8b2a00",border:"none",color:"#f5e6c8",cursor:"pointer",fontSize:15}}>➤</button>
-          </div>
-          <div style={{padding:"0 10px 10px",display:"flex",gap:5,flexWrap:"wrap"}}>
-            {["Accord poisson","Quand ouvrir ?","Comment servir ?","Meilleur rouge ?"].map(q=>(
-              <button key={q} onClick={()=>setInput(q)}
-                style={{padding:"4px 9px",borderRadius:11,background:"#2a1500",border:"1px solid #5a2a00",color:"#c4916a",fontSize:11,cursor:"pointer"}}>{q}</button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {view==="cellar" && (
-        <div style={{flex:1,overflowY:"auto",padding:14}}>
-          {wines.length===0 ? (
-            <div style={{textAlign:"center",color:"#9a6a4a",marginTop:60}}>
-              <div style={{fontSize:44}}>🍾</div>
-              <div style={{marginTop:10}}>Cave vide — ajoutez vos bouteilles !</div>
-            </div>
-          ) : (
-            <div style={{display:"flex",flexDirection:"column",gap:9}}>
-              {wines.map(w=>{
-                const cells=winePositionMap[w.id]||[];
-                const isAssigning=assignMode===w.id;
-                return (
-                  <div key={w.id} style={{background:"#2a1500",border:`1px solid ${isAssigning?"#e8a060":"#5a2a00"}`,borderRadius:11,padding:"11px 13px"}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
-                      <div style={{flex:1}}>
-                        <div style={{fontWeight:"bold",fontSize:14}}>{WINE_COLORS[w.type]} {w.nom}</div>
-                        <div style={{color:"#c4916a",fontSize:12,marginTop:2}}>{w.appellation} · {w.millesime}</div>
-                        <div style={{color:"#9a6a4a",fontSize:11,marginTop:3}}>
-                          🍾 {w.quantite} btl{w.quantite>1?"s":""}
-                          {cells.length>0 && <span style={{color:"#8b6a30",marginLeft:6}}>· 📍 {cells.length}</span>}
-                        </div>
-                      </div>
-                      <div style={{display:"flex",gap:4,flexDirection:"column",alignItems:"flex-end"}}>
-                        <div style={{display:"flex",gap:4}}>
-                          <button onClick={()=>startEdit(w)} style={{background:"#3a1500",border:"1px solid #5a2a00",color:"#c4916a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:12}}>✏️</button>
-                          <button onClick={()=>deleteWine(w.id)} style={{background:"#3a1500",border:"1px solid #5a2a00",color:"#c47a6a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:12}}>🗑️</button>
-                        </div>
-                        <button onClick={()=>{ setAssignMode(isAssigning?null:w.id); setView("map"); }}
-                          style={{background:isAssigning?"#7a4a00":"#3a1500",
-                            border:`1px solid ${isAssigning?"#e8a060":"#5a2a00"}`,
-                            color:isAssigning?"#f5e6c8":"#c4916a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:11}}>
-                          📍 Placer
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {view==="add" && (
-        <div style={{flex:1,overflowY:"auto",padding:18}}>
-          <div style={{fontSize:15,fontWeight:"bold",marginBottom:18}}>{editId?"Modifier le vin":"Ajouter un vin"}</div>
-          {[
-            {label:"Nom du vin *",key:"nom",ph:"Ex: Château Margaux"},
-            {label:"Appellation / Région",key:"appellation",ph:"Ex: Margaux, Bourgogne…"},
-            {label:"Millésime",key:"millesime",ph:"Ex: 2018"},
-          ].map(f=>(
-            <div key={f.key} style={{marginBottom:13}}>
-              <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>{f.label}</label>
-              <input value={newWine[f.key]} onChange={e=>setNewWine(p=>({...p,[f.key]:e.target.value}))}
-                placeholder={f.ph}
-                style={{width:"100%",padding:"9px 11px",borderRadius:8,background:"#2a1500",
-                  border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none"}}/>
-            </div>
-          ))}
-          <div style={{marginBottom:13}}>
-            <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>Type</label>
-            <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-              {Object.entries(WINE_COLORS).map(([type,emoji])=>(
-                <button key={type} onClick={()=>setNewWine(p=>({...p,type}))}
-                  style={{padding:"5px 12px",borderRadius:18,
-                    border:`1px solid ${newWine.type===type?"#e8a060":"#5a2a00"}`,
-                    background:newWine.type===type?"#6b1a00":"#2a1500",
-                    color:"#f5e6c8",cursor:"pointer",fontSize:12,textTransform:"capitalize"}}>
-                  {emoji} {type}
-                </button>
+```
+  {/* Meubles */}
+  <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
+    {SECTIONS.map(sec=>{
+      const ih = sec.rangees*(ROW_H+3)+10;
+      const totalH = 14+ih+14+40;
+      return (
+        <div key={sec.id}>
+          <div style={{fontSize:9,color:"#777",marginBottom:4}}>{sec.label}</div>
+          <div style={{width:TOTAL_W,position:"relative"}}>
+            <div style={{position:"absolute",left:0,top:0,width:POST,height:totalH,zIndex:10,
+              background:`linear-gradient(to right,${woodDk},${wood},${woodLt},${wood},${woodDk})`,
+              boxShadow:"2px 0 5px rgba(0,0,0,0.2)"}}/>
+            <div style={{position:"absolute",right:0,top:0,width:POST,height:totalH,zIndex:10,
+              background:`linear-gradient(to left,${woodDk},${wood},${woodLt},${wood},${woodDk})`,
+              boxShadow:"-2px 0 5px rgba(0,0,0,0.2)"}}/>
+            <div style={{position:"relative",zIndex:11,height:14,
+              background:`linear-gradient(to bottom,${woodLt},${woodDk})`,
+              boxShadow:"0 3px 8px rgba(0,0,0,0.25)"}}/>
+            <div style={{marginLeft:POST,width:INNER_W,background:"#cccccc",
+              padding:"6px 4px 6px 0",height:ih,position:"relative",zIndex:1,
+              boxShadow:"inset 0 2px 10px rgba(0,0,0,0.1)"}}>
+              {Array.from({length:sec.rangees}).map((_,row)=>(
+                <ShelfRow key={row} row={row} secId={sec.id}/>
               ))}
             </div>
-          </div>
-          <div style={{marginBottom:18}}>
-            <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>Quantité</label>
-            <div style={{display:"flex",alignItems:"center",gap:11}}>
-              <button onClick={()=>setNewWine(p=>({...p,quantite:Math.max(1,p.quantite-1)}))}
-                style={{width:36,height:36,borderRadius:"50%",background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:20,cursor:"pointer"}}>−</button>
-              <span style={{fontSize:17,minWidth:28,textAlign:"center"}}>{newWine.quantite}</span>
-              <button onClick={()=>setNewWine(p=>({...p,quantite:p.quantite+1}))}
-                style={{width:36,height:36,borderRadius:"50%",background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:20,cursor:"pointer"}}>+</button>
+            <div style={{position:"relative",zIndex:11,height:14,
+              background:`linear-gradient(to bottom,${woodDk},${wood})`,
+              boxShadow:"0 -2px 5px rgba(0,0,0,0.15)"}}/>
+            <div style={{position:"relative",zIndex:9,display:"flex",justifyContent:"space-between",width:TOTAL_W}}>
+              <div style={{width:POST,height:40,background:`linear-gradient(to right,${woodDk},${wood})`,borderRadius:"0 0 4px 4px"}}/>
+              <div style={{width:POST,height:40,background:`linear-gradient(to left,${woodDk},${wood})`,borderRadius:"0 0 4px 4px"}}/>
             </div>
           </div>
-          <button onClick={addOrUpdateWine} disabled={!newWine.nom.trim()}
-            style={{width:"100%",padding:"12px",borderRadius:9,
-              background:newWine.nom.trim()?"#8b2a00":"#3a1500",border:"none",
-              color:"#f5e6c8",fontSize:14,cursor:newWine.nom.trim()?"pointer":"not-allowed"}}>
-            {editId?"💾 Enregistrer":"🍾 Ajouter à ma cave"}
-          </button>
+        </div>
+      );
+    })}
+  </div>
+
+  {/* Selected cell info */}
+  {selectedCell && !assignMode && (()=>{
+    const parts=selectedCell.split("-");
+    const sec=SECTIONS.find(s=>s.id===parts[0]);
+    return (
+      <div style={{background:"rgba(255,255,255,0.92)",border:"1px solid #c0a870",
+        borderRadius:10,padding:"12px 14px",marginTop:12,boxShadow:"0 2px 12px rgba(0,0,0,0.12)"}}>
+        <div style={{fontSize:10,color:"#9a8060",marginBottom:5}}>
+          📍 {sec?.label} · Rangée {Number(parts[1])+1} · Col. {Number(parts[2])+1}
+        </div>
+        {selectedWine ? (
+          <>
+            <div style={{fontWeight:"bold",fontSize:15,color:"#1a0a00"}}>{selectedWine.nom}</div>
+            <div style={{color:"#8a6040",fontSize:13,marginTop:2}}>{selectedWine.appellation}</div>
+            <div style={{color:"#a06818",fontSize:14,marginTop:2}}>🗓 {selectedWine.millesime}</div>
+            <div style={{color:"#9a8060",fontSize:11,marginTop:2}}>🍾 {selectedWine.quantite} bouteille{selectedWine.quantite>1?"s":""}</div>
+            <div style={{display:"flex",gap:8,marginTop:10}}>
+              <button onClick={()=>{ const p={...positions}; delete p[selectedCell]; updatePositions(p); setSelectedCell(null); }}
+                style={{flex:1,padding:"6px",borderRadius:8,background:"#fee",border:"1px solid #fcc",color:"#c00",cursor:"pointer",fontSize:12}}>
+                🗑️ Retirer</button>
+              <button onClick={()=>{ setAssignMode(selectedWine.id); setSelectedCell(null); }}
+                style={{flex:1,padding:"6px",borderRadius:8,background:"#f5f0e8",border:"1px solid #c0a870",color:"#6a4a20",cursor:"pointer",fontSize:12}}>
+                🔄 Changer</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{color:"#9a8060",fontSize:13,marginBottom:7}}>Case vide — choisir un vin :</div>
+            <div style={{display:"flex",flexDirection:"column",gap:5,maxHeight:150,overflowY:"auto"}}>
+              {wines.map(w=>(
+                <button key={w.id} onClick={()=>{ updatePositions({...positions,[selectedCell]:w.id}); setSelectedCell(null); }}
+                  style={{padding:"5px 10px",borderRadius:8,background:"#f5f0e8",border:"1px solid #c0a870",
+                    color:"#2a1a08",cursor:"pointer",fontSize:12,textAlign:"left"}}>
+                  {WINE_COLORS[w.type]} {w.nom} {w.millesime}
+                </button>
+              ))}
+              {wines.length===0 && <div style={{fontSize:12,color:"#9a8060"}}>Ajoutez d'abord des vins dans Ma Cave</div>}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  })()}
+
+  {assignMode && (
+    <div style={{background:"#fffbe8",border:"1px solid #d4a820",borderRadius:10,
+      padding:"9px 13px",marginTop:10}}>
+      <div style={{fontSize:13,color:"#8a6010",marginBottom:2}}>
+        Placement : <strong>{(wines.find(w=>w.id===assignMode)||{}).nom}</strong>
+      </div>
+      <div style={{fontSize:11,color:"#9a8060"}}>{(winePositionMap[assignMode]||[]).length} position(s) · Cliquez les cases</div>
+    </div>
+  )}
+
+  {/* Legend */}
+  <div style={{marginTop:14,display:"flex",gap:10,flexWrap:"wrap",paddingBottom:20}}>
+    {[
+      {s:"bdx",l:"Bordeaux",desc:"épaules droites",gc:"#180700",gl:"#2c1004",cap:"#c0392b",r:11,punt:3,isAls:false,isAutre:false},
+      {s:"brg",l:"Bourgogne",desc:"punt profond",gc:"#180700",gl:"#2c1004",cap:"#c0392b",r:10,punt:5,isAls:false,isAutre:false},
+      {s:"als",l:"Alsace",desc:"forme ovale",gc:"#485c18",gl:"#687c28",cap:"#c8c8a0",r:null,punt:3,isAls:true,isAutre:false},
+      {s:"autre",l:"Autre",desc:"fiasque / intern.",gc:"#282830",gl:"#383840",cap:"#888",r:13,punt:8,isAls:false,isAutre:true},
+    ].map(({s,l,desc,gc,gl,cap,r,punt,isAls,isAutre})=>(
+      <div key={s} style={{display:"flex",alignItems:"center",gap:5,fontSize:10,color:"#555"}}>
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          {isAls
+            ? <ellipse cx="12" cy="12" rx="6" ry="10" fill={gc} stroke="#111" strokeWidth="0.8"/>
+            : <circle cx="12" cy="12" r={r} fill={gc} stroke="#111" strokeWidth="0.8"/>}
+          <circle cx="12" cy="12" r={r?r-2:0} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.4"/>
+          {isAutre && <circle cx="12" cy="12" r={r-4} fill="none" stroke={gl} strokeWidth="0.5" opacity="0.3"/>}
+          <circle cx="12" cy="12" r={punt} fill={gl} opacity={isAutre?0.5:0.7}/>
+          <circle cx="12" cy="12" r={punt-1.5} fill={gc} opacity="0.9"/>
+          <circle cx="12" cy="12" r="2" fill={cap}/>
+          <circle cx="12" cy="12" r="0.9" fill="rgba(255,255,255,0.5)"/>
+        </svg>
+        <div>
+          <div style={{fontWeight:"500"}}>{l}</div>
+          <div style={{fontSize:9,color:"#888"}}>{desc}</div>
+        </div>
+      </div>
+    ))}
+    {[["rouge","#c0392b"],["blanc","#c8c8a0"],["rosé","#e890a8"],["champagne","#d4a820"]].map(([t,c])=>(
+      <div key={t} style={{display:"flex",alignItems:"center",gap:3,fontSize:10,color:"#555"}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:c,border:"1px solid #999"}}/>
+        {t}
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+);
+
+// ── COPY / PASTE ────────────────────────────────────
+const copyCave = () => {
+const data = JSON.stringify({wines, positions, exported: new Date().toISOString()});
+navigator.clipboard.writeText(data)
+.then(()=>showToast(“📋 Cave copiée ! Collez-la dans l’autre app.”))
+.catch(()=>showToast(“❌ Impossible de copier”,”#7a3a3a”));
+};
+
+const pasteCave = async () => {
+try {
+const text = await navigator.clipboard.readText();
+if (!text) return;
+const data = JSON.parse(text);
+if (data.wines && data.positions) {
+updateWines(data.wines);
+updatePositions(data.positions);
+showToast(`✅ Cave restaurée — ${data.wines.length} vins`);
+} else showToast(“❌ Format invalide”,”#7a3a3a”);
+} catch(e) { showToast(“❌ Erreur lors du collage”,”#7a3a3a”); }
+};
+
+// ── SETTINGS ────────────────────────────────────────
+const renderSettings = () => (
+<div style={{flex:1,overflowY:“auto”,padding:18}}>
+<div style={{fontSize:15,fontWeight:“bold”,marginBottom:18}}>⚙️ Réglages</div>
+
+```
+  <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
+    <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>☁️ Google Sheets</div>
+    <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.6,marginBottom:10}}>
+      Sauvegarde automatique dans Google Sheets.
+      {lastSync && <div style={{marginTop:4,color:"#6a8a6a"}}>Dernière sync : {lastSync.toLocaleTimeString()}</div>}
+    </div>
+    <button onClick={manualSync} disabled={syncing}
+      style={{width:"100%",padding:"10px",borderRadius:8,background:syncing?"#3a1500":"#2a4a2a",
+        border:"1px solid #3a6a3a",color:syncing?"#9a6a4a":"#8aaa8a",cursor:syncing?"not-allowed":"pointer",fontSize:13}}>
+      {syncing?"⏳ Synchronisation…":"🔄 Synchroniser maintenant"}
+    </button>
+  </div>
+
+  <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
+    <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>📋 Transfert manuel</div>
+    <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.5,marginBottom:12}}>
+      Pour passer vos données entre cette app et Claude.ai : copiez ici, collez là-bas (ou inversement).
+    </div>
+    <div style={{display:"flex",gap:8}}>
+      <button onClick={copyCave}
+        style={{flex:1,padding:"10px",borderRadius:8,background:"#3a1500",border:"1px solid #5a2a00",
+          color:"#c4916a",cursor:"pointer",fontSize:13}}>
+        📋 Copier ma cave
+      </button>
+      <button onClick={pasteCave}
+        style={{flex:1,padding:"10px",borderRadius:8,background:"#3a1500",border:"1px solid #5a2a00",
+          color:"#c4916a",cursor:"pointer",fontSize:13}}>
+        📥 Coller ma cave
+      </button>
+    </div>
+  </div>
+
+  <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
+    <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>🔑 Clé API Anthropic</div>
+    <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.5,marginBottom:10}}>
+      Nécessaire pour le Sommelier IA dans cette app. Obtenez votre clé sur console.anthropic.com
+    </div>
+    <input type="password" placeholder="sk-ant-..."
+      defaultValue={lsGet("cave_apikey")||""}
+      onChange={e=>lsSet("cave_apikey",e.target.value)}
+      style={{width:"100%",padding:"9px 11px",borderRadius:8,background:"#1a0a00",
+        border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none",marginBottom:8}}/>
+    <button onClick={()=>{
+      const key=document.querySelector('input[placeholder="sk-ant-..."]')?.value||"";
+      lsSet("cave_apikey",key);
+      showToast(key?"✅ Clé sauvegardée":"🗑️ Clé supprimée");
+    }} style={{width:"100%",padding:"9px",borderRadius:8,background:"#3a1500",
+      border:"1px solid #5a2a00",color:"#c4916a",cursor:"pointer",fontSize:13}}>
+      💾 Sauvegarder la clé
+    </button>
+  </div>
+
+  <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14,marginBottom:14}}>
+    <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>🔒 Code PIN</div>
+    <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.6}}>
+      Pour changer le PIN, modifiez la ligne<br/>
+      <code style={{color:"#e8a060"}}>const PIN_CODE = "1234"</code><br/>
+      dans le fichier index.html sur GitHub.
+    </div>
+  </div>
+
+  <div style={{background:"#2a1500",border:"1px solid #5a2a00",borderRadius:10,padding:14}}>
+    <div style={{fontSize:13,color:"#e8a060",fontWeight:"bold",marginBottom:6}}>📲 Installer comme app</div>
+    <div style={{fontSize:11,color:"#9a6a4a",lineHeight:1.7}}>
+      <strong style={{color:"#c4916a"}}>iPhone (Safari) :</strong><br/>
+      Partager → "Sur l'écran d'accueil"<br/><br/>
+      <strong style={{color:"#c4916a"}}>PC (Chrome) :</strong><br/>
+      Icône ⊕ dans la barre d'adresse → "Installer"
+    </div>
+  </div>
+</div>
+```
+
+);
+
+// ── RENDER ──────────────────────────────────────────
+return (
+<div style={{fontFamily:“Georgia,serif”,background:”#1a0a00”,minHeight:“100vh”,
+color:”#f5e6c8”,display:“flex”,flexDirection:“column”,maxWidth:520,margin:“0 auto”}}>
+
+```
+  {toast && (
+    <div style={{position:"fixed",top:14,left:"50%",transform:"translateX(-50%)",
+      background:toast.color,color:"#fff",padding:"8px 18px",borderRadius:20,
+      fontSize:13,zIndex:999,boxShadow:"0 2px 12px #0006",whiteSpace:"nowrap"}}>
+      {toast.msg}
+    </div>
+  )}
+
+  <div style={{background:"linear-gradient(135deg,#3d0a00,#6b1a00)",padding:"12px 16px",borderBottom:"1px solid #8b3a00"}}>
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{fontSize:18,fontWeight:"bold",letterSpacing:1}}>🍷 Mon Caviste</div>
+      {syncing && <div style={{fontSize:10,color:"#c4916a"}}>⏳ Sync…</div>}
+    </div>
+    <div style={{fontSize:10,color:"#c4916a",marginTop:2}}>
+      {wines.length} vins · {totalBottles} bouteilles · {occupiedCells}/{totalCells} positions · ☁️ Google Sheets
+    </div>
+  </div>
+
+  <div style={{display:"flex",background:"#2a0e00",borderBottom:"1px solid #5a2a00"}}>
+    {[["map","🗺️ Plan"],["chat","💬 Sommelier"],["cellar","🗄️ Cave"],
+      ["add",editId!==null?"✏️ Modifier":"➕ Ajouter"],["settings","⚙️"]].map(([id,label])=>(
+      <button key={id} onClick={()=>{ setView(id); if(id!=="add") setEditId(null); }}
+        style={{flex:1,padding:"9px 2px",background:view===id?"#6b1a00":"transparent",
+          color:view===id?"#f5e6c8":"#9a6a4a",border:"none",cursor:"pointer",fontSize:10,
+          borderBottom:view===id?"2px solid #e8a060":"2px solid transparent"}}>
+        {label}
+      </button>
+    ))}
+  </div>
+
+  {view==="map" && renderMap()}
+
+  {view==="chat" && (
+    <div style={{flex:1,display:"flex",flexDirection:"column"}}>
+      <div style={{flex:1,overflowY:"auto",padding:14,display:"flex",flexDirection:"column",gap:10,minHeight:350}}>
+        {messages.map((m,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}>
+            <div style={{maxWidth:"82%",padding:"9px 13px",
+              borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",
+              background:m.role==="user"?"#6b1a00":"#2a1500",
+              border:m.role==="assistant"?"1px solid #5a2a00":"none",
+              fontSize:13,lineHeight:1.6,whiteSpace:"pre-wrap"}}>
+              {m.role==="assistant" && <span style={{fontSize:10,color:"#c4916a",display:"block",marginBottom:3}}>🍷 Sommelier</span>}
+              {m.content}
+            </div>
+          </div>
+        ))}
+        {loading && (
+          <div style={{display:"flex"}}>
+            <div style={{padding:"9px 13px",borderRadius:"18px 18px 18px 4px",background:"#2a1500",border:"1px solid #5a2a00",fontSize:13,color:"#c4916a"}}>✦ En réflexion…</div>
+          </div>
+        )}
+        <div ref={messagesEnd}/>
+      </div>
+      <div style={{padding:10,borderTop:"1px solid #3a1500",display:"flex",gap:7}}>
+        <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMessage()}
+          placeholder="Ex: Quel vin avec un agneau rôti ?"
+          style={{flex:1,padding:"9px 13px",borderRadius:22,background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none"}}/>
+        <button onClick={sendMessage} disabled={loading||!input.trim()}
+          style={{padding:"9px 15px",borderRadius:22,background:loading?"#3a1500":"#8b2a00",border:"none",color:"#f5e6c8",cursor:"pointer",fontSize:15}}>➤</button>
+      </div>
+      <div style={{padding:"0 10px 10px",display:"flex",gap:5,flexWrap:"wrap"}}>
+        {["Accord poisson","Quand ouvrir ?","Comment servir ?","Meilleur rouge ?"].map(q=>(
+          <button key={q} onClick={()=>setInput(q)}
+            style={{padding:"4px 9px",borderRadius:11,background:"#2a1500",border:"1px solid #5a2a00",color:"#c4916a",fontSize:11,cursor:"pointer"}}>{q}</button>
+        ))}
+      </div>
+    </div>
+  )}
+
+  {view==="cellar" && (
+    <div style={{flex:1,overflowY:"auto",padding:14}}>
+      {wines.length===0 ? (
+        <div style={{textAlign:"center",color:"#9a6a4a",marginTop:60}}>
+          <div style={{fontSize:44}}>🍾</div>
+          <div style={{marginTop:10}}>Cave vide — ajoutez vos bouteilles !</div>
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:9}}>
+          {wines.map(w=>{
+            const cells=winePositionMap[w.id]||[];
+            const isAssigning=assignMode===w.id;
+            return (
+              <div key={w.id} style={{background:"#2a1500",border:`1px solid ${isAssigning?"#e8a060":"#5a2a00"}`,borderRadius:11,padding:"11px 13px"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontWeight:"bold",fontSize:14}}>{WINE_COLORS[w.type]} {w.nom}</div>
+                    <div style={{color:"#c4916a",fontSize:12,marginTop:2}}>{w.appellation} · {w.millesime}</div>
+                    <div style={{color:"#9a6a4a",fontSize:11,marginTop:3}}>
+                      🍾 {w.quantite} btl{w.quantite>1?"s":""}
+                      {cells.length>0 && <span style={{color:"#8b6a30",marginLeft:6}}>· 📍 {cells.length}</span>}
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:4,flexDirection:"column",alignItems:"flex-end"}}>
+                    <div style={{display:"flex",gap:4}}>
+                      <button onClick={()=>startEdit(w)} style={{background:"#3a1500",border:"1px solid #5a2a00",color:"#c4916a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:12}}>✏️</button>
+                      <button onClick={()=>deleteWine(w.id)} style={{background:"#3a1500",border:"1px solid #5a2a00",color:"#c47a6a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:12}}>🗑️</button>
+                    </div>
+                    <button onClick={()=>{ setAssignMode(isAssigning?null:w.id); setView("map"); }}
+                      style={{background:isAssigning?"#7a4a00":"#3a1500",
+                        border:`1px solid ${isAssigning?"#e8a060":"#5a2a00"}`,
+                        color:isAssigning?"#f5e6c8":"#c4916a",padding:"3px 8px",borderRadius:7,cursor:"pointer",fontSize:11}}>
+                      📍 Placer
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
-
-      {view==="settings" && renderSettings()}
     </div>
-  );
+  )}
+
+  {view==="add" && (
+    <div style={{flex:1,overflowY:"auto",padding:18}}>
+      <div style={{fontSize:15,fontWeight:"bold",marginBottom:18}}>{editId?"Modifier le vin":"Ajouter un vin"}</div>
+      {[
+        {label:"Nom du vin *",key:"nom",ph:"Ex: Château Margaux"},
+        {label:"Appellation / Région",key:"appellation",ph:"Ex: Margaux, Bourgogne…"},
+        {label:"Millésime",key:"millesime",ph:"Ex: 2018"},
+      ].map(f=>(
+        <div key={f.key} style={{marginBottom:13}}>
+          <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>{f.label}</label>
+          <input value={newWine[f.key]} onChange={e=>setNewWine(p=>({...p,[f.key]:e.target.value}))}
+            placeholder={f.ph}
+            style={{width:"100%",padding:"9px 11px",borderRadius:8,background:"#2a1500",
+              border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:13,outline:"none"}}/>
+        </div>
+      ))}
+      <div style={{marginBottom:13}}>
+        <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>Type</label>
+        <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
+          {Object.entries(WINE_COLORS).map(([type,emoji])=>(
+            <button key={type} onClick={()=>setNewWine(p=>({...p,type}))}
+              style={{padding:"5px 12px",borderRadius:18,
+                border:`1px solid ${newWine.type===type?"#e8a060":"#5a2a00"}`,
+                background:newWine.type===type?"#6b1a00":"#2a1500",
+                color:"#f5e6c8",cursor:"pointer",fontSize:12,textTransform:"capitalize"}}>
+              {emoji} {type}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{marginBottom:18}}>
+        <label style={{fontSize:12,color:"#c4916a",display:"block",marginBottom:4}}>Quantité</label>
+        <div style={{display:"flex",alignItems:"center",gap:11}}>
+          <button onClick={()=>setNewWine(p=>({...p,quantite:Math.max(1,p.quantite-1)}))}
+            style={{width:36,height:36,borderRadius:"50%",background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:20,cursor:"pointer"}}>−</button>
+          <span style={{fontSize:17,minWidth:28,textAlign:"center"}}>{newWine.quantite}</span>
+          <button onClick={()=>setNewWine(p=>({...p,quantite:p.quantite+1}))}
+            style={{width:36,height:36,borderRadius:"50%",background:"#2a1500",border:"1px solid #5a2a00",color:"#f5e6c8",fontSize:20,cursor:"pointer"}}>+</button>
+        </div>
+      </div>
+      <button onClick={addOrUpdateWine} disabled={!newWine.nom.trim()}
+        style={{width:"100%",padding:"12px",borderRadius:9,
+          background:newWine.nom.trim()?"#8b2a00":"#3a1500",border:"none",
+          color:"#f5e6c8",fontSize:14,cursor:newWine.nom.trim()?"pointer":"not-allowed"}}>
+        {editId?"💾 Enregistrer":"🍾 Ajouter à ma cave"}
+      </button>
+    </div>
+  )}
+
+  {view==="settings" && renderSettings()}
+</div>
+```
+
+);
 }
 
-ReactDOM.render(<App />, document.getElementById("root"));
+ReactDOM.render(<App />, document.getElementById(“root”));
 </script>
+
 </body>
 </html>
