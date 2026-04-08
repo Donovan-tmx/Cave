@@ -455,7 +455,7 @@ if (selectedCell && !assignMode) {
       h("div",{style:{color:"#9a8060",fontSize:13,marginBottom:7}},"Case vide — choisir un vin :"),
       h("div",{style:{display:"flex",flexDirection:"column",gap:5,maxHeight:150,overflowY:"auto"}},
         wines.map(function(w) {
-          return h("button",{key:w.id,onClick:function(){updatePositions(Object.assign({},positions,{[selectedCell]:w.id}));setSelectedCell(null);},
+          return h("button",{key:w.id,onClick:function(){var np=Object.assign({},positions);np[selectedCell]=w.id;updatePositions(np);setSelectedCell(null);},
             style:{padding:"5px 10px",borderRadius:8,background:"#f5f0e8",border:"1px solid #c0a870",
               color:"#2a1a08",cursor:"pointer",fontSize:12,textAlign:"left"}},
             (WINE_ICONS[w.type]||"🍾")+" "+w.nom+" "+w.millesime
@@ -610,7 +610,7 @@ h(“div”,{style:{fontSize:15,fontWeight:“bold”,marginBottom:18}},editId?�
 ].map(function(f) {
 return h(“div”,{key:f.key,style:{marginBottom:13}},
 h(“label”,{style:{fontSize:12,color:”#c4916a”,display:“block”,marginBottom:4}},f.label),
-h(“input”,{value:newWine[f.key],onChange:function(e){setNewWine(Object.assign({},newWine,{[f.key]:e.target.value}));},
+h(“input”,{value:newWine[f.key],onChange:function(e){var nw=Object.assign({},newWine);nw[f.key]=e.target.value;setNewWine(nw);},
 placeholder:f.ph,
 style:{width:“100%”,padding:“9px 11px”,borderRadius:8,background:”#2a1500”,
 border:“1px solid #5a2a00”,color:”#f5e6c8”,fontSize:13,outline:“none”}})
